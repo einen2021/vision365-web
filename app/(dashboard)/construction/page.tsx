@@ -79,7 +79,9 @@ export default function ConstructionPage() {
         name: c.communityName || c.name || c.id,
         displayName: c.communityName || c.name || c.id,
       }))
-      setCommunities(['All', ...(communityList.map((c: any) => c.displayName) || [])])
+      const displayNames: string[] = communityList.map((c: any) => c.displayName as string)
+      const communitiesList: string[] = ['All', ...displayNames]
+      setCommunities(communitiesList);
       // Store for filtering
       (window as any).__communitiesData = communityList
     } catch (error) {
@@ -115,7 +117,7 @@ export default function ConstructionPage() {
     }
 
     setLoadingConstruction(true)
-    const constructionRef = doc(db, 'constructionDetails', selectedBuilding)
+    const constructionRef = doc(db as any, 'constructionDetails', selectedBuilding)
     
     const unsubscribe = onSnapshot(constructionRef, async (doc) => {
       if (doc.exists()) {
@@ -124,7 +126,11 @@ export default function ConstructionPage() {
         
         // Get subcategories
         try {
-          const subcategories = await firestoreConstruction.getSubcategoriesList(selectedBuilding)
+          const subcategoriesList = await firestoreConstruction.getSubcategories(selectedBuilding)
+          const subcategories: any = subcategoriesList.reduce((acc: any, item: any) => {
+            acc[item.id] = item.subcategories || [];
+            return acc;
+          }, {});
           
           // Convert to steps format with subcategories
           const stepsData = Object.entries(constructionStatus).map(([key, value]) => {
@@ -134,11 +140,11 @@ export default function ConstructionPage() {
             return {
               id: key,
               name: key.replace(/([A-Z])/g, ' $1').trim(),
-              status: value === 1 ? 'completed' : value === 0 ? 'ongoing' : 'yet-to-start',
+              status: (value === 1 ? 'completed' : value === 0 ? 'ongoing' : 'yet-to-start') as ConstructionStep['status'],
               subcategories: subcategoriesForStep.map((sub: any) => ({
                 id: sub.id,
                 name: sub.name,
-                status: sub.status || 'yet-to-start',
+                status: (sub.status || 'yet-to-start') as ConstructionStep['status'],
               })),
             }
           })
@@ -150,7 +156,7 @@ export default function ConstructionPage() {
           const stepsData = Object.entries(constructionStatus).map(([key, value]) => ({
             id: key,
             name: key.replace(/([A-Z])/g, ' $1').trim(),
-            status: value === 1 ? 'completed' : value === 0 ? 'ongoing' : 'yet-to-start',
+            status: (value === 1 ? 'completed' : value === 0 ? 'ongoing' : 'yet-to-start') as ConstructionStep['status'],
           }))
           setSteps(stepsData)
           setLoadingConstruction(false)
@@ -205,7 +211,7 @@ export default function ConstructionPage() {
       // Map status to numeric value
       const statusValue = newStatus === 'completed' ? 1 : newStatus === 'ongoing' ? 0 : -1
       
-      const constructionRef = doc(db, 'constructionDetails', selectedBuilding)
+      const constructionRef = doc(db as any, 'constructionDetails', selectedBuilding)
       await updateDoc(constructionRef, {
         [`constructionStatus.${stepId}`]: statusValue,
         lastUpdated: new Date(),
@@ -225,7 +231,7 @@ export default function ConstructionPage() {
 
     try {
       const constructionData = await firestoreConstruction.getConstructionStatus(selectedBuilding)
-      setSteps(constructionData.steps || [])
+      setSteps((constructionData.steps || []) as ConstructionStep[])
     } catch (error) {
       console.error('Error fetching construction data:', error)
     }

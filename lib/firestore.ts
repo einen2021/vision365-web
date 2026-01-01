@@ -16,6 +16,7 @@ import {
   DocumentData,
   QuerySnapshot,
   Unsubscribe,
+  writeBatch,
 } from 'firebase/firestore'
 import { db } from './firebase'
 
@@ -865,6 +866,36 @@ export const firestoreIncidents = {
 
     // Get from all buildings - would need buildings collection
     return { incidents: [] }
+  },
+
+  async createIncident(buildingName: string, incidentData: any) {
+    const firestoreDb = checkFirebase()
+    const collectionName = getBuildingCollectionName(buildingName)
+    const incidentsRef = doc(firestoreDb, collectionName, 'incidents')
+    
+    // Get existing incidents
+    const incidentsDoc = await getDoc(incidentsRef)
+    const existingData = incidentsDoc.exists() ? incidentsDoc.data() : {}
+    const incidents = existingData.incidents || []
+    
+    // Add new incident
+    const newIncident = {
+      ...incidentData,
+      id: incidentData.id || Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      status: 'open', // Default status
+    }
+    
+    incidents.push(newIncident)
+    
+    // Save back to Firestore
+    if (incidentsDoc.exists()) {
+      await updateDoc(incidentsRef, { incidents })
+    } else {
+      await setDoc(incidentsRef, { incidents })
+    }
+    
+    return { message: 'Incident created successfully.', status: true, id: newIncident.id }
   },
 }
 

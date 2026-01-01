@@ -56,7 +56,7 @@ export default function ControlsPage() {
         name: c.communityName || c.name || c.id,
         displayName: c.communityName || c.name || c.id,
       }))
-      setCommunities(['All', ...(communityList.map((c: any) => c.displayName) || [])])
+      setCommunities(['All', ...(communityList.map((c: any) => c.displayName) || [])]);
       // Store for filtering
       (window as any).__communitiesData = communityList
     } catch (error) {
@@ -92,8 +92,8 @@ export default function ControlsPage() {
 
     setLoadingControls(true)
     const collectionName = getBuildingCollectionName(selectedBuilding)
-    const smokeRef = doc(db, collectionName, 'smokeActions')
-    const buildingDetailsRef = doc(db, collectionName, 'buildingDetails')
+    const smokeRef = doc(db as any, collectionName, 'smokeActions')
+    const buildingDetailsRef = doc(db as any, collectionName, 'buildingDetails')
 
     const unsubscribeSmoke = onSnapshot(smokeRef, async (doc) => {
       if (doc.exists()) {

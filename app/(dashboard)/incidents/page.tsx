@@ -19,6 +19,7 @@ import { z } from 'zod'
 import { FloatingActionButton } from '@/components/ui/FloatingActionButton'
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner'
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton'
+import { Select, SelectItem } from '@/components/ui/Select'
 
 interface Incident {
   id: string
@@ -104,7 +105,7 @@ export default function IncidentsPage() {
         name: c.communityName || c.name || c.id,
         displayName: c.communityName || c.name || c.id,
       }))
-      setCommunities(['All', ...(communityList.map((c: any) => c.displayName) || [])])
+      setCommunities(['All', ...(communityList.map((c: any) => c.displayName) || [])]);
       // Store for filtering
       (window as any).__communitiesData = communityList
     } catch (error) {
@@ -139,7 +140,7 @@ export default function IncidentsPage() {
 
     setLoadingIncidents(true)
     const collectionName = getBuildingCollectionName(selectedBuilding)
-    const incidentsRef = doc(db, collectionName, 'incidents')
+    const incidentsRef = doc(db as any, collectionName, 'incidents')
     
     const unsubscribe = onSnapshot(incidentsRef, (doc) => {
       if (doc.exists()) {
@@ -148,8 +149,8 @@ export default function IncidentsPage() {
           id: incident.incidentId || incident.id,
           title: incident.title || incident.hazardType || 'Untitled',
           category: incident.category || incident.hazardType || 'General',
-          priority: incident.priority || 'medium',
-          status: incident.status || 'open',
+          priority: (incident.priority || 'medium') as Incident['priority'],
+          status: (incident.status || 'open') as Incident['status'],
           building: selectedBuilding,
           location: incident.location || '',
           timestamp: incident.timestamp || incident.createdAt || new Date().toISOString(),
